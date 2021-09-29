@@ -28,7 +28,8 @@ def fortify_scan(request):
 
             if len(gitaccount) == 0 and len(gitpwd) == 0:
                 # push.delay(gitaddress=gitaddress)
-                threading.Thread(target=push,args=(gitaddress,)).start()
+                # threading.Thread(target=push,args=(gitaddress,)).start()
+                push.delay(gitaddress=gitaddress)
                 return JsonResponse({"code": 1001, "msg": "开始扫描"})
             else:
                 if "https://" in gitaddress:

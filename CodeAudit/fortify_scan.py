@@ -114,6 +114,7 @@ def push(gitaddress='', svnaddress='', name='', type=1, svnaccount='', svnpwd=''
     if len(gitaddress) > 0:
         myfile = gitaddress.split('/')[-1].split('.')[0]
         proj_info.objects.create(name=myfile, git=gitaddress, token=token, type=type)
+        print("拉取代码.....")
         try:
             cmd = 'git clone ' + gitaddress.strip() + ' ' + fortify_path + myfile
             subprocess.check_call(cmd, shell=True)
