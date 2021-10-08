@@ -5,7 +5,7 @@ import random
 import string
 import codecs
 from CodeAudit.models import proj_info, vul_info
-from celery.decorators import task
+from celery import task
 # from celery.task.schedules import crontab
 # from celery.decorators import periodic_task
 import requests
@@ -111,6 +111,7 @@ def git_api():
 @task
 def push(gitaddress='', svnaddress='', name='', type=1, svnaccount='', svnpwd=''):
     token = ''.join(random.sample(string.ascii_letters + string.digits, 32))
+    print("任务执行！！！！")
     if len(gitaddress) > 0:
         myfile = gitaddress.split('/')[-1].split('.')[0]
         proj_info.objects.create(name=myfile, git=gitaddress, token=token, type=type)

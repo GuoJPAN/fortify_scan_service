@@ -20,15 +20,13 @@ def fortify_scan(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         t = data['type']  # 1为git,2为git-list,3为SVN,4为上传
-        print(t)
         if (t == "1"):
             gitaddress = data['git_path']
             gitaccount = data['git_user']
             gitpwd = data['git_pwd']
 
             if len(gitaccount) == 0 and len(gitpwd) == 0:
-                # push.delay(gitaddress=gitaddress)
-                # threading.Thread(target=push,args=(gitaddress,)).start()
+                 # threading.Thread(target=push,args=(gitaddress,)).start()
                 push.delay(gitaddress=gitaddress)
                 return JsonResponse({"code": 1001, "msg": "开始扫描"})
             else:
