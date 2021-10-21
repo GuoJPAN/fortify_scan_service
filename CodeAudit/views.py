@@ -3,8 +3,7 @@ from django.http import JsonResponse, HttpResponseRedirect
 from django.http.response import HttpResponse
 from CodeAudit.fortify_scan import *
 import json
-import threading
-from django.db.models import Q
+from .info import information
 
 
 # Create your views here.
@@ -22,24 +21,9 @@ def fortify_scan(request):
         t = data['type']  # 1为git,2为git-list,3为SVN,4为上传
         if (t == "1"):
             gitaddress = data['git_path']
-            gitaccount = data['git_user']
-            gitpwd = data['git_pwd']
-
-            if len(gitaccount) == 0 and len(gitpwd) == 0:
-                 # threading.Thread(target=push,args=(gitaddress,)).start()
-                push.delay(gitaddress=gitaddress)
-                return JsonResponse({"code": 1001, "msg": "开始扫描"})
-            else:
-                if "https://" in gitaddress:
-                    tmp = "https://" + gitaccount.replace("@", "%40") + ":" + gitpwd + "@"
-                    address = gitaddress.replace("https://", tmp)
-                    push.delay(gitaddress=address)
-                elif "http://" in gitaddress:
-                    tmp = "http://" + gitaccount.replace("@", "%40") + ":" + gitpwd + "@"
-                    address = gitaddress.replace('http://', tmp)
-                    push.delay(gitaddress=address)
-                else:
-                    pass
+            gitbranch = data['git_branch']
+            push.delay(gitaddress=gitaddress, gitbranch=gitbranch)
+            return JsonResponse({"code": 1001, "msg": "开始扫描"})
         elif (t == "2"):
             git_api()
             return JsonResponse({"code": 1001, "msg": "开始扫描!!!"})
@@ -81,7 +65,7 @@ def display_project(request):
     # if request.method == 'get':
     # data = json.loads(request.body)
     json_list = []
-    proj_infos = proj_info.objects.all()
+    proj_infos = proj_info.objects.all().order_by('-id')
     # print(proj_infos)
     for project in proj_infos:
         json_dict = {}
@@ -89,12 +73,13 @@ def display_project(request):
         json_dict["name"] = project.name
         json_dict["total"] = project.total
         json_dict["git"] = project.git
+        json_dict["gitbranch"] = project.gitbranch
         if project.status == 1:
             json_dict["status"] = "进行中"
         elif project.status == 2:
             json_dict["status"] = "已完成"
         else:
-            json_dict["type"] = "未知错误"
+            json_dict["status"] = "扫描失败"
         if project.type == 1:
             json_dict["type"] = "GIT"
         elif project.type == 2:
@@ -118,7 +103,7 @@ def v_detail(request):
         data = json.loads(request.body)
         proj_id = data["projectID"]
         json_list = []
-        vul_infos = vul_info.objects.filter(proj_id=proj_id)
+        vul_infos = vul_info.objects.filter(proj_id=proj_id).order_by('risk')
         for vrl in vul_infos:
             json_dict = {}
             json_dict["vid"] = vrl.vid
@@ -168,7 +153,8 @@ def single_vul_detail(request):
             json_dict["extend"] = vrl.extend
             json_dict["proj_id"] = vrl.proj_id.type
             json_dict["vtoken"] = vrl.vtoken
-            print(json_dict["proj_id"])
+            json_dict["describe"] = information(vrl.title)['describe']
+            json_dict["Recommendation"] = information(vrl.title)['Recommendation']
             json_dict["time"] = vrl.time.strftime('%Y-%m-%d-%H:%M:%S')
             json_list.append(json_dict)
         data = {"status": 0, "msg": "获取数据成功", 'data': json_list}
@@ -178,6 +164,7 @@ def single_vul_detail(request):
         return JsonResponse(data)
 
 
+# 调试用的代码
 def start_git_scan(request):
     # git_path = request.POST.get('git_path')
     # git_user = request.POST.get('git_user')
@@ -190,3 +177,24 @@ def start_git_scan(request):
     data = {"status": 0, "msg": "扫描成功!!!", 'data': info}
 
     return HttpResponse(json.dumps(data, ensure_ascii=False))
+
+
+# 删除项目信息
+def del_prj_info(request):
+    '''
+    根据项目ID删除扫描项目信息及扫描结果详情
+    :param request:
+    :return:
+    '''
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        proj_id = data["projectID"]
+        try:
+            proj_info.objects.filter(id=proj_id).delete()
+            vul_info.objects.filter(proj_id=proj_id).delete()
+            data = {"status": 2, "msg": "删除成功!!!", 'data': ""}
+            return HttpResponse(json.dumps(data, ensure_ascii=False))
+        except Exception as e:
+            print(str(e))
+            data = {"status": 2, "msg": "删除失败!!!", 'data': ""}
+            return HttpResponse(json.dumps(data, ensure_ascii=False))

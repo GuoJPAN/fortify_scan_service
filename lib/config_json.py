@@ -31,6 +31,10 @@ def load_config(parm):
     return config_parm
 
 
+# git
+account = load_config('account')
+
+
 # fortify
 fortify_path = load_config('fortify_path')
 report_path = load_config('report_path')

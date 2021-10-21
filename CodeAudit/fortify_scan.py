@@ -15,6 +15,7 @@ import datetime
 import random
 import hashlib
 hl = hashlib.md5()
+import shutil
 
 
 # 对fortify的XML文件进行解析
@@ -70,19 +71,24 @@ def run(myfile, token):
     source_path = fortify_path + myfile
     fortify_fpr = report_path + myfile + '.fpr'
     fortify_xml = report_path + myfile + '.xml'
-    del_fpr = 'sourceanalyzer -b ' + myfile + ' -clean'
-    build = 'sourceanalyzer  -b ' + myfile + ' -Xmx1200M -Xms600M -Xss24M     -source 1.8 -machine-output   ' + source_path
-    scan = 'sourceanalyzer  -b ' + myfile + ' -scan  -format fpr -f ' + fortify_fpr + ' -machine-output '
-    report = 'ReportGenerator  -format xml -f ' + fortify_xml + ' -source ' + fortify_fpr + ' -template DeveloperWorkbook.xml'
-    subprocess.check_call(del_fpr, shell=True)
-    subprocess.check_call(build, shell=True)
-    subprocess.check_call(scan, shell=True)
-    subprocess.check_call(report, shell=True)
-    report_xml(fortify_xml, source_path, myfile, token)
-    obj = proj_info.objects.get(token=token)
-    obj.total = vul_info.objects.filter(proj_id=proj_info.objects.get(token=token)).count()
-    obj.status = 2
-    obj.save()
+    try:
+        del_fpr = 'sourceanalyzer -b ' + myfile + ' -clean'
+        build = 'sourceanalyzer  -b ' + myfile + ' -Xmx1200M -Xms600M -Xss24M     -source 1.8 -machine-output   ' + source_path
+        scan = 'sourceanalyzer  -b ' + myfile + ' -scan  -format fpr -f ' + fortify_fpr + ' -machine-output '
+        report = 'ReportGenerator  -format xml -f ' + fortify_xml + ' -source ' + fortify_fpr + ' -template DeveloperWorkbook.xml'
+        subprocess.check_call(del_fpr, shell=True)
+        subprocess.check_call(build, shell=True)
+        subprocess.check_call(scan, shell=True)
+        subprocess.check_call(report, shell=True)
+        report_xml(fortify_xml, source_path, myfile, token)
+        obj = proj_info.objects.get(token=token)
+        obj.total = vul_info.objects.filter(proj_id=proj_info.objects.get(token=token)).count()
+        obj.status = 2
+        obj.save()
+    except:
+        obj = proj_info.objects.get(token=token)
+        obj.status = 3
+        obj.save()
 
 
 @task
@@ -109,15 +115,17 @@ def git_api():
 
 
 @task
-def push(gitaddress='', svnaddress='', name='', type=1, svnaccount='', svnpwd=''):
+def push(gitaddress='',gitbranch='', svnaddress='', name='', type=1, svnaccount='', svnpwd=''):
     token = ''.join(random.sample(string.ascii_letters + string.digits, 32))
     print("任务执行！！！！")
     if len(gitaddress) > 0:
         myfile = gitaddress.split('/')[-1].split('.')[0]
-        proj_info.objects.create(name=myfile, git=gitaddress, token=token, type=type)
+        print(gitbranch.strip())
+        proj_info.objects.create(name=myfile, git=gitaddress, gitbranch=gitbranch.strip(), token=token, type=type)
         print("拉取代码.....")
         try:
-            cmd = 'git clone ' + gitaddress.strip() + ' ' + fortify_path + myfile
+            cmd = 'git clone ' + gitaddress.strip().replace("http://", account) + ' -b ' + gitbranch.strip() + ' ' + fortify_path + myfile
+            print("cmd" + str(cmd))
             subprocess.check_call(cmd, shell=True)
         except subprocess.CalledProcessError as err:
             try:
@@ -143,7 +151,6 @@ def push(gitaddress='', svnaddress='', name='', type=1, svnaccount='', svnpwd=''
             pass
     run(myfile, token)
 
-# push(gitaddress='https://hub.fastgit.org/zhisheng17/blog.git')
 def md5(str):
     m = hashlib.md5()
     m.update(str.encode("utf8"))

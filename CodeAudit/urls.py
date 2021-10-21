@@ -9,4 +9,5 @@ urlpatterns = [
     path('vDetail', v_detail, name='v_detail'),
     path('test', start_git_scan, name='fortify_scan'),
     path('singleVulDetail', single_vul_detail, name='single_vul_detail'),
+    path('deletePrj', del_prj_info, name='删除扫描'),
 ]
