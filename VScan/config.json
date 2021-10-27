@@ -1,14 +1,14 @@
 {
   "setting": {
     "MYSQL": {
-      "MYSQL_HOST": "192.168.126.128",
+      "MYSQL_HOST": "101.35.185.109",
       "MYSQL_PORT": "3306",
       "MYSQL_DATABASE": "vscan",
       "MYSQL_USER": "root",
-      "MYSQL_PASSWORD": "123456"
+      "MYSQL_PASSWORD": "pljun338@"
     },
     "PASS": {
-      "account": ""
+      "account": "http://61000002:Pljun110@"
     },
     "SQLMAP": {
       "SQLMAP_LIMIT_RUN": 15,
