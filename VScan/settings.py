@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'CodeAudit',
-    'djcelery'
+    'djcelery',
+    'common'
 ]
 
 MIDDLEWARE = [
