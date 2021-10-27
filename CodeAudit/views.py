@@ -22,7 +22,8 @@ def fortify_scan(request):
         if (t == "1"):
             gitaddress = data['git_path']
             gitbranch = data['git_branch']
-            push.delay(gitaddress=gitaddress, gitbranch=gitbranch)
+            storeHouseType = data['storeHouseType']
+            push.delay(gitaddress=gitaddress, gitbranch=gitbranch, storeHouseType=storeHouseType)
             return JsonResponse({"code": 1001, "msg": "开始扫描"})
         elif (t == "2"):
             git_api()

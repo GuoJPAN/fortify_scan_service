@@ -115,7 +115,7 @@ def git_api():
 
 
 @task
-def push(gitaddress='',gitbranch='', svnaddress='', name='', type=1, svnaccount='', svnpwd=''):
+def push(gitaddress='',gitbranch='', svnaddress='', name='', type=1, svnaccount='', svnpwd='', storeHouseType=''):
     token = ''.join(random.sample(string.ascii_letters + string.digits, 32))
     print("任务执行！！！！")
     if len(gitaddress) > 0:
@@ -124,9 +124,16 @@ def push(gitaddress='',gitbranch='', svnaddress='', name='', type=1, svnaccount=
         proj_info.objects.create(name=myfile, git=gitaddress, gitbranch=gitbranch.strip(), token=token, type=type)
         print("拉取代码.....")
         try:
-            cmd = 'git clone ' + gitaddress.strip().replace("http://", account) + ' -b ' + gitbranch.strip() + ' ' + fortify_path + myfile
-            print("cmd" + str(cmd))
-            subprocess.check_call(cmd, shell=True)
+            if storeHouseType == "Gilab":
+                cmd = 'git clone ' + gitaddress.strip().replace("http://", account) + ' -b ' + gitbranch.strip() + ' ' + fortify_path + myfile
+                print("cmd" + str(cmd))
+                subprocess.check_call(cmd, shell=True)
+            elif storeHouseType == "Github":
+                cmd = 'git clone ' + gitaddress.strip() + ' ' + fortify_path + myfile
+                print("cmd" + str(cmd))
+                subprocess.check_call(cmd, shell=True)
+            else:
+                pass
         except subprocess.CalledProcessError as err:
             try:
                 subprocess.check_call('cd ' + fortify_path + myfile + ' && git pull', shell=True)
@@ -150,6 +157,7 @@ def push(gitaddress='',gitbranch='', svnaddress='', name='', type=1, svnaccount=
         except subprocess.CalledProcessError:
             pass
     run(myfile, token)
+
 
 def md5(str):
     m = hashlib.md5()
