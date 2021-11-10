@@ -4,6 +4,7 @@ from django.http.response import HttpResponse
 from CodeAudit.fortify_scan import *
 import json
 from .info import information
+from utils.auth import log_in
 
 
 # Create your views here.
@@ -13,8 +14,7 @@ def index(request):
     return render(request, 'index.html')
 
 
-# @csrf_exempt
-# @permission_required('audit.upload_code_and_scan')
+@log_in
 def fortify_scan(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -62,8 +62,9 @@ def fortify_scan(request):
         return render(request, "audit/scan.html", locals())
 
 
+@log_in
 def display_project(request):
-    # if request.method == 'get':
+    # if request.method == 'GTE':
     # data = json.loads(request.body)
     json_list = []
     proj_infos = proj_info.objects.all().order_by('-id')
@@ -90,10 +91,11 @@ def display_project(request):
         json_dict["svn"] = project.svn
         json_dict["time"] = project.time.strftime('%Y-%m-%d-%H:%M:%S')
         json_list.append(json_dict)
-    data = {"status": 0, "msg": "扫描成功!!!", 'data': json_list}
+    data = {"status": 0, "msg": "OK!!!", 'data': json_list}
     return JsonResponse(data)
 
 
+@log_in
 def v_detail(request):
     '''
     获取fortify扫描结果详情
@@ -127,7 +129,7 @@ def v_detail(request):
         data = {"status": 500, "msg": "系统错误", 'data': ""}
         return JsonResponse(data)
 
-
+@log_in
 def single_vul_detail(request):
     '''
     获取fortify扫描结果详情
@@ -164,7 +166,7 @@ def single_vul_detail(request):
         data = {"status": 500, "msg": "系统错误", 'data': ""}
         return JsonResponse(data)
 
-
+@log_in
 # 调试用的代码
 def start_git_scan(request):
     # git_path = request.POST.get('git_path')
@@ -180,7 +182,7 @@ def start_git_scan(request):
     return HttpResponse(json.dumps(data, ensure_ascii=False))
 
 
-# 删除项目信息
+@log_in
 def del_prj_info(request):
     '''
     根据项目ID删除扫描项目信息及扫描结果详情
