@@ -1,7 +1,7 @@
 {
   "setting": {
     "MYSQL": {
-      "MYSQL_HOST": "101.35.185.109",
+      "MYSQL_HOST": "114.132.201.58",
       "MYSQL_PORT": "3306",
       "MYSQL_DATABASE": "vscan",
       "MYSQL_USER": "root",

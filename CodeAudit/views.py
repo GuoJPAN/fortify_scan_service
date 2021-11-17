@@ -201,3 +201,30 @@ def del_prj_info(request):
             print(str(e))
             data = {"status": 2, "msg": "删除失败!!!", 'data': ""}
             return HttpResponse(json.dumps(data, ensure_ascii=False))
+
+
+@log_in
+def vul_level_total(request):
+    '''
+    获取各风险等级漏洞综总数
+    :param request:
+    :return:
+    '''
+    if request.method == 'GET':
+
+        print(vul_info.objects.filter(risk='High').count())
+        vul_critical = vul_info.objects.filter(risk='Critical').count()
+        vul_high = vul_info.objects.filter(risk='High').count()
+        vul_medium = vul_info.objects.filter(risk='Medium').count()
+        vul_low = vul_info.objects.filter(risk='Low').count()
+        data = {"status": 200, "msg": "ok", 'data': {
+            "Critical": vul_critical,
+            "High": vul_high,
+            "Medium": vul_medium,
+            "Low": vul_low,
+            "Total": vul_critical + vul_high + vul_medium + vul_low
+        }}
+        return JsonResponse(data)
+    else:
+        data = {"status": 500, "msg": "系统错误", 'data': ""}
+        return JsonResponse(data)
